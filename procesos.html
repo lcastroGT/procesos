@@ -63,6 +63,7 @@
         </div>
         <div class="col-sm-2 col-md-2">
            <b>Resumen de proceso</b>
+           <div id="historial"></div>
         </div>
     </div>
     <div class="alert alert-info">El tamano del proceso se crea automaticamente, pudiendo tener como maximo el 50% del tamano de la memoria</div>
@@ -80,16 +81,17 @@
             var num_p = document.getElementById('procesos').value;
             
             for (var i=1;i<=num_p;i++){
-                crear_proceso(document.getElementById('memory').value); 
+                crear_proceso(i); 
                 proceso++;
             }
             
         }
         var ancho_inicial=0;
-        function crear_proceso(){
+        function crear_proceso(pid_proceso){
             var size_p=Math.floor(Math.random() * ((memoria_principal/2)-1+1));
             var ancho=((size_p/memoria_principal)*0.8)*100+"%";
             document.getElementById("info_process").innerHTML=size_p;
+            document.getElementById("historial").innerHTML+="PID "+pid_proceso+" -- "+size_p+"Kb<br>";
             
         }
     </script>
