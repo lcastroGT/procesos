@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Pruebas Canvas</title>
+    <title>Administrador de Procesos</title>
     <link rel="stylesheet" href="css/bootstrap.css">
     <style>
     #titulo{
@@ -19,6 +19,12 @@
         width:80%;
         height:30px;
         border: solid 1px;
+    }
+    #memoria-usada{
+       position:relative;
+       width:0px;
+       height:28px;
+       background-color:#f74c4c;
     }
     .panel-default{
         margin:150px 20px 20px 20px;
@@ -57,7 +63,9 @@
                 </div>
                 <div class="panel-body">
                     <div id="info_process"></div>
-                    <div id="grafica-memoria"></div>
+                    <div id="grafica-memoria">
+                        <div id="memoria-usada"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -74,25 +82,27 @@
         
         var proceso = 0;
         var memoria_principal = 0;
+        var ancho_inicial, ancho=0;
         
         function cargar_proceso(){
-            proceso=0;
+            proceso=1;
             memoria_principal = document.getElementById('memory').value
             var num_p = document.getElementById('procesos').value;
             
-            for (var i=1;i<=num_p;i++){
-                crear_proceso(i); 
+            var crear_procesos=setInterval(function(){
+                if(proceso>=num_p) clearInterval(crear_procesos);
+                crear_proceso(proceso);
                 proceso++;
-            }
-            
+            },1000);
         }
-        var ancho_inicial=0;
         function crear_proceso(pid_proceso){
             var size_p=Math.floor(Math.random() * ((memoria_principal/2)-1+1));
-            var ancho=((size_p/memoria_principal)*0.8)*100+"%";
-            document.getElementById("info_process").innerHTML=size_p;
+            ancho_inicial=((size_p/memoria_principal)*0.8)*100;
+            //var ancho=((size_p/memoria_principal)*0.8)*100;
+            document.getElementById("info_process").innerHTML="<h3>Proceso #"+pid_proceso+" -- "+size_p+" kb";
+            document.getElementById("memoria-usada").style.width=ancho_inicial+ancho+"%";
             document.getElementById("historial").innerHTML+="PID "+pid_proceso+" -- "+size_p+"Kb<br>";
-            
+            ancho+=((size_p/memoria_principal)*0.8)*100;
         }
     </script>
 </body>
