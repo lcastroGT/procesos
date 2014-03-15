@@ -28,3 +28,8 @@
     margin-top:60px;
     visibility:hidden;
 }
+#tabla_admin{
+    width:100%;
+    height:300px;
+    overflow:auto;
+}

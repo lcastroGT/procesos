@@ -38,7 +38,7 @@
             </div>
         </div>
         </div>
-        <div class="col-sm-6 col-md-6">
+        <div class="col-sm-8 col-md-8">
             <div class="panel panel-primary" id="process">
                 <div class="panel-heading">
                     <h3 class="panel-title">Memoria Principal</h3>
@@ -53,9 +53,20 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-2 col-md-2">
-           <b>Resumen de proceso</b>
+       <!-- <div class="col-sm-2 col-md-2">
+           <b>Historial</b>
            <div id="historial"></div>
+        </div>
+        -->
+    </div>
+    <div class="row">
+        <br>
+        <h3>Administracion de Procesos</h3>
+        <div class="col-sm-12 col-md-12" id="tabla_admin">
+            <table class="table table-hover" id="admin">
+                <tr><th>PID</th><th>Inicio</th><th>Tamaño</th><th>Estado</th></tr>
+                
+            </table>
         </div>
     </div>
     
@@ -73,53 +84,137 @@
     </div>
     
     <!-- Manipular el objeto Canvas -->    
-    <script type="text/javascript">
+<script type="text/javascript">
+    var proceso = {pid:0,size:0,estado:'Listo'};
+    var memoria_principal = 0;
+    var ancho=0;
+    var tamanio_actual=0;
+    var size_maximo=0;
+    var flag=0;
+    var tmp=0;
+    
+    function cargar_proceso(){
+        var num_p = document.getElementById('procesos').value;
+        var procesos = 1;
+                    
+        memoria_principal = document.getElementById('memory').value; //Tamaño memoria RAM
+        size_maximo=document.getElementById("size_p_max").value;   //Tamaño maximo para cada proceso
         
-       // var proceso = 0;
-        var memoria_principal = 0;
-        var ancho_inicial, ancho=0;
-        var memoria_en_uso=0;
-        var tamanio_actual=0;
-        var size_maximo=0;
-        
-        function cargar_proceso(){
-            var proceso=1;
-            var num_p = document.getElementById('procesos').value;
-            memoria_principal = document.getElementById('memory').value;
-            size_maximo=document.getElementById("size_p_max").value;
-            
-            var crear_procesos=setInterval(function(){
-                if(proceso>=num_p) clearInterval(crear_procesos);
-                crear_proceso(proceso);
-                proceso++;
-            },200);
-            
-        }
-        
-        function crear_proceso(pid_proceso){
-            var size_p=Math.floor(Math.random() * ((size_maximo)-1+1));
-            
-            if(validar_espacio(size_p))
-                dibujar_proceso(size_p,pid_proceso);
-            else{
-                document.getElementById("historial").innerHTML+="PID "+pid_proceso+" -- "+size_p+"Mb [wait]<br>";
-                document.getElementById("procesos-espera").style.visibility="visible";
+        var crear_procesos=setInterval(function(){
+            if(procesos>=num_p){ 
+                clearInterval(crear_procesos);
+                //kill_process();
             }
-        }
+            
+            crear_proceso(procesos);
+            procesos++;
+        },500);
         
-        function dibujar_proceso(size,pid){
-            ancho_inicial=((size/memoria_principal)*0.8)*100;
-            document.getElementById("info_process").innerHTML="<h3>Proceso # "+pid+" -- "+size+" Mb";
-            document.getElementById("memoria-usada").style.width=ancho_inicial+ancho+"%";
-            document.getElementById("historial").innerHTML+="PID "+pid+" -- "+size+"Mb<br>";
-            ancho+=((size/memoria_principal)*0.8)*100;
-        }
         
-        function validar_espacio(size){
-            tamanio_actual+=size;
-            if(tamanio_actual<=memoria_principal)
-                return true;
-        }
-    </script>
+    }
+
+    var timer_control = setInterval(control, 800);
+
+
+    function control(){
+		if(flag==0){ /*Pasar de Wait a Ejecución*/
+			run_process();
+			flag++;
+		}else if(flag==1){ /*Pasar de Wait a Terminado*/
+			stop_process();
+			flag++;
+		}else if(flag==2){ /*Eliminar Terminados*/
+			kill_process();
+			flag=0;
+		}
+	}
+
+    function crear_proceso(pid_proceso){
+        
+        proceso.pid=pid_proceso;
+        proceso.size=Math.floor(Math.random() * ((size_maximo)-1+1));;
+        
+        proceso.estado="Wait";
+        add_process_table();
+    }
+    
+    function dibujar_proceso(size,pid){
+        ancho=((tamanio_actual/memoria_principal)*0.8)*100;
+        document.getElementById("info_process").innerHTML="<h3>Proceso # "+proceso.pid+" -- "+proceso.size+" Mb";
+        document.getElementById("memoria-usada").style.width=ancho+"%";
+//            ancho=((tamanio_actual/memoria_principal)*0.8)*100;
+    }
+    
+    function add_process_table(){
+        var tabla = document.getElementById("admin");
+        tabla.insertRow(1);
+        var fila = tabla.rows[1];	//Nueva fila en la tabla
+        var c_pid=fila.insertCell(0);
+        var c_inicio=fila.insertCell(1);
+        var c_size=fila.insertCell(2);
+        var c_estado=fila.insertCell(3);
+        var fecha = new Date();
+                        
+        c_pid.innerHTML=proceso.pid;
+        c_inicio.innerHTML=fecha.getHours()+":"+fecha.getMinutes()+":"+fecha.getSeconds()+":"+fecha.getMilliseconds();
+        c_size.innerHTML=proceso.size+" Mb";
+        c_estado.innerHTML=proceso.estado;
+    }
+    
+	function run_process(){
+	    var tb = document.getElementById("admin");
+	    
+	    if(tb.rows.length>1){
+			for(var i=1;i<tb.rows.length;i++){
+				var celda=tb.rows[i].cells[3];
+
+				if(celda.innerHTML=="Wait"){
+					var size=parseInt(tb.rows[i].cells[2].innerHTML);
+					var pid=tb.rows[i].cells[0].innerHTML;
+					if(validar_espacio(size)){
+						celda.innerHTML="En ejecucion";
+						dibujar_proceso(size,pid);
+					}
+				}
+			}
+		}
+	}
+
+	function stop_process(){
+	    var tb = document.getElementById("admin");
+	    if(tb.rows.length>1){
+			for(var i=1;i<tb.rows.length;i++){
+			var celda=tb.rows[i].cells[3];	
+				if(celda.innerHTML=="En ejecucion"){
+					var size=parseInt(tb.rows[i].cells[2].innerHTML);
+					tamanio_actual-=size;
+					celda.innerHTML="Terminado";
+					dibujar_proceso(tamanio_actual,0)
+				}    
+			}
+	    }
+	}
+
+	function kill_process(){
+    	var tb = document.getElementById("admin");
+		
+		if(tb.rows.length>1){
+			for(var i=1;i<tb.rows.length;i++){
+				var celda=tb.rows[i].cells[3];	
+				if(celda.innerHTML=="Terminado"){
+					tb.deleteRow(celda.parentNode.rowIndex);
+				}    
+          	}
+		}
+    }
+
+	function validar_espacio(size){
+		var tmp = tamanio_actual+size;
+		if(tmp<=memoria_principal){
+			tamanio_actual+=size;
+			return true;
+	    }
+	}
+</script>
 </body>
 </html>
